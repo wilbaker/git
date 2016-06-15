@@ -841,6 +841,15 @@ core.gvfs::
 		is 5.  During some commands we do not want to traverse the commit
 		graph for uninteresting commits.  This flag will lower the default
 		slop value to 1.
+	GVFS_BLOCK_FILTERS_AND_EOL_CONVERSIONS::
+		Bit value 64
+		With a virtual file system we only know the file size before any
+		CRLF or smudge/clean filters processing is done on the client.
+		To prevent file corruption due to truncation or expansion with
+		garbage at the end, these filters must not run when the file
+		is first accessed and brought down to the client. Git.exe can't
+		currently tell the first access vs subsequent accesses so this
+		flag just blocks them from occurring at all.
 --
 
 core.sparseCheckout::
