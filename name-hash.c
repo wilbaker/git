@@ -162,9 +162,11 @@ static void lazy_init_name_hash(struct index_state *istate)
 {
 	struct dir_entry *previous_dir = NULL;
 	int nr;
+	uint64_t start;
 
 	if (istate->name_hash_initialized)
 		return;
+	start = getnanotime();
 	hashmap_init(&istate->name_hash, (hashmap_cmp_fn) cache_entry_cmp,
 			istate->cache_nr);
 	hashmap_init(&istate->dir_hash, (hashmap_cmp_fn) dir_entry_cmp,
@@ -172,6 +174,7 @@ static void lazy_init_name_hash(struct index_state *istate)
 	for (nr = 0; nr < istate->cache_nr; nr++)
 		hash_index_entry(istate, istate->cache[nr], &previous_dir);
 	istate->name_hash_initialized = 1;
+	trace_performance_since(start, "lazy_init_name_hash");
 }
 
 void add_name_hash(struct index_state *istate, struct cache_entry *ce)
