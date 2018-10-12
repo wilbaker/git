@@ -330,7 +330,7 @@ const char **prepare_git_cmd(struct argv_array *out, const char **argv)
 int execv_git_cmd(const char **argv)
 {
 	struct argv_array nargv = ARGV_ARRAY_INIT;
-	int err;
+	int code;
 
 	prepare_git_cmd(&nargv, argv);
 	trace_argv_printf(nargv.argv, "trace: exec:");
