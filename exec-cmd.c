@@ -2,6 +2,7 @@
 #include "exec-cmd.h"
 #include "quote.h"
 #include "argv-array.h"
+#include "run-command.h"
 
 #if defined(RUNTIME_PREFIX)
 
