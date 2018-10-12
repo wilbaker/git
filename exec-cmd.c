@@ -336,17 +336,11 @@ int execv_git_cmd(const char **argv)
 	trace_argv_printf(nargv.argv, "trace: exec:");
 	trace2_exec("git", (const char **)nargv.argv);
 
-	/* execvp() can only ever return if it fails */
-	sane_execvp("git", (char **)nargv.argv);
-
-	err = errno;
-	trace_printf("trace: exec failed: %s\n", strerror(err));
-	trace2_exec_result(err);
-
+	code = run_command_v_opt(nargv.argv, 0);
+	if (code < 0)
+		die_errno(_("could not exec %s"), nargv.argv[0]);
 	argv_array_clear(&nargv);
-
-	errno = err;
-	return -1;
+	exit(code);
 }
 
 int execl_git_cmd(const char *cmd, ...)
