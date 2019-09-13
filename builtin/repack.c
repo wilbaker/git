@@ -560,8 +560,12 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 		update_server_info(0);
 	remove_temporary_files();
 
-	if (git_env_bool(GIT_TEST_MULTI_PACK_INDEX, 0))
-		write_midx_file(get_object_directory());
+	if (git_env_bool(GIT_TEST_MULTI_PACK_INDEX, 0)) {
+		struct opts_midx opts = {0};
+		opts.object_dir = get_object_directory();
+		opts.progress = !po_args.quiet && isatty(2);
+		write_midx_file(&opts);
+	}
 
 	string_list_clear(&names, 0);
 	string_list_clear(&rollback, 0);

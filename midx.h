@@ -37,7 +37,15 @@ struct multi_pack_index {
 	char object_dir[FLEX_ARRAY];
 };
 
-#define MIDX_PROGRESS     (1 << 0)
+
+/*
+ * struct opts_midx stores options that are common to the
+ * multi-pack-index subcommands (write|verify|expire|repack)
+ */
+struct opts_midx {
+	const char *object_dir;
+	int progress;
+};
 
 struct multi_pack_index *load_multi_pack_index(const char *object_dir, int local);
 int prepare_midx_pack(struct repository *r, struct multi_pack_index *m, uint32_t pack_int_id);
@@ -49,11 +57,11 @@ int fill_midx_entry(struct repository *r, const struct object_id *oid, struct pa
 int midx_contains_pack(struct multi_pack_index *m, const char *idx_or_pack_name);
 int prepare_multi_pack_index_one(struct repository *r, const char *object_dir, int local);
 
-int write_midx_file(const char *object_dir);
+int write_midx_file(struct opts_midx *opts);
 void clear_midx_file(struct repository *r);
-int verify_midx_file(struct repository *r, const char *object_dir, unsigned flags);
-int expire_midx_packs(struct repository *r, const char *object_dir);
-int midx_repack(struct repository *r, const char *object_dir, size_t batch_size, unsigned flags);
+int verify_midx_file(struct repository *r, struct opts_midx *opts);
+int expire_midx_packs(struct repository *r, struct opts_midx *opts);
+int midx_repack(struct repository *r, struct opts_midx *opts, size_t batch_size);
 
 void close_midx(struct multi_pack_index *m);
 

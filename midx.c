@@ -1017,9 +1017,9 @@ cleanup:
 	return result;
 }
 
-int write_midx_file(const char *object_dir)
+int write_midx_file(struct opts_midx *opts)
 {
-	return write_midx_internal(object_dir, NULL, NULL);
+	return write_midx_internal(opts->object_dir, NULL, NULL);
 }
 
 void clear_midx_file(struct repository *r)
@@ -1077,18 +1077,18 @@ static int compare_pair_pos_vs_id(const void *_a, const void *_b)
 			display_progress(progress, _n); \
 	} while (0)
 
-int verify_midx_file(struct repository *r, const char *object_dir, unsigned flags)
+int verify_midx_file(struct repository *r, struct opts_midx *opts)
 {
 	struct pair_pos_vs_id *pairs = NULL;
 	uint32_t i;
 	struct progress *progress = NULL;
-	struct multi_pack_index *m = load_multi_pack_index(object_dir, 1);
+	struct multi_pack_index *m = load_multi_pack_index(opts->object_dir, 1);
 	verify_midx_error = 0;
 
 	if (!m)
 		return 0;
 
-	if (flags & MIDX_PROGRESS)
+	if (opts->progress)
 		progress = start_progress(_("Looking for referenced packfiles"),
 				 	 m->num_packs);
 	for (i = 0; i < m->num_packs; i++) {
@@ -1108,7 +1108,7 @@ int verify_midx_file(struct repository *r, const char *object_dir, unsigned flag
 				    i, oid_fanout1, oid_fanout2, i + 1);
 	}
 
-	if (flags & MIDX_PROGRESS)
+	if (opts->progress)
 		progress = start_sparse_progress(_("Verifying OID order in MIDX"),
 						 m->num_objects - 1);
 	for (i = 0; i < m->num_objects - 1; i++) {
@@ -1137,14 +1137,14 @@ int verify_midx_file(struct repository *r, const char *object_dir, unsigned flag
 		pairs[i].pack_int_id = nth_midxed_pack_int_id(m, i);
 	}
 
-	if (flags & MIDX_PROGRESS)
+	if (opts->progress)
 		progress = start_sparse_progress(_("Sorting objects by packfile"),
 						 m->num_objects);
 	display_progress(progress, 0); /* TODO: Measure QSORT() progress */
 	QSORT(pairs, m->num_objects, compare_pair_pos_vs_id);
 	stop_progress(&progress);
 
-	if (flags & MIDX_PROGRESS)
+	if (opts->progress)
 		progress = start_sparse_progress(_("Verifying object offsets"), m->num_objects);
 	for (i = 0; i < m->num_objects; i++) {
 		struct object_id oid;
@@ -1188,11 +1188,11 @@ int verify_midx_file(struct repository *r, const char *object_dir, unsigned flag
 	return verify_midx_error;
 }
 
-int expire_midx_packs(struct repository *r, const char *object_dir)
+int expire_midx_packs(struct repository *r, struct opts_midx *opts)
 {
 	uint32_t i, *count, result = 0;
 	struct string_list packs_to_drop = STRING_LIST_INIT_DUP;
-	struct multi_pack_index *m = load_multi_pack_index(object_dir, 1);
+	struct multi_pack_index *m = load_multi_pack_index(opts->object_dir, 1);
 
 	if (!m)
 		return 0;
@@ -1226,7 +1226,7 @@ int expire_midx_packs(struct repository *r, const char *object_dir)
 	free(count);
 
 	if (packs_to_drop.nr)
-		result = write_midx_internal(object_dir, m, &packs_to_drop);
+		result = write_midx_internal(opts->object_dir, m, &packs_to_drop);
 
 	string_list_clear(&packs_to_drop, 0);
 	return result;
@@ -1320,14 +1320,14 @@ static int fill_included_packs_batch(struct repository *r,
 	return 0;
 }
 
-int midx_repack(struct repository *r, const char *object_dir, size_t batch_size, unsigned flags)
+int midx_repack(struct repository *r, struct opts_midx *opts, size_t batch_size)
 {
 	int result = 0;
 	uint32_t i;
 	unsigned char *include_pack;
 	struct child_process cmd = CHILD_PROCESS_INIT;
 	struct strbuf base_name = STRBUF_INIT;
-	struct multi_pack_index *m = load_multi_pack_index(object_dir, 1);
+	struct multi_pack_index *m = load_multi_pack_index(opts->object_dir, 1);
 
 	if (!m)
 		return 0;
@@ -1342,11 +1342,11 @@ int midx_repack(struct repository *r, const char *object_dir, size_t batch_size,
 
 	argv_array_push(&cmd.args, "pack-objects");
 
-	strbuf_addstr(&base_name, object_dir);
+	strbuf_addstr(&base_name, opts->object_dir);
 	strbuf_addstr(&base_name, "/pack/pack");
 	argv_array_push(&cmd.args, base_name.buf);
 
-	if (flags & MIDX_PROGRESS)
+	if (opts->progress)
 		argv_array_push(&cmd.args, "--progress");
 	else
 		argv_array_push(&cmd.args, "-q");
@@ -1381,7 +1381,7 @@ int midx_repack(struct repository *r, const char *object_dir, size_t batch_size,
 		goto cleanup;
 	}
 
-	result = write_midx_internal(object_dir, m, NULL);
+	result = write_midx_internal(opts->object_dir, m, NULL);
 	m = NULL;
 
 cleanup:
