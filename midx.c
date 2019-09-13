@@ -1017,7 +1017,7 @@ cleanup:
 	return result;
 }
 
-int write_midx_file(struct opts_midx *opts)
+int write_midx_file(struct opts_multi_pack_index *opts)
 {
 	return write_midx_internal(opts->object_dir, NULL, NULL);
 }
@@ -1077,7 +1077,7 @@ static int compare_pair_pos_vs_id(const void *_a, const void *_b)
 			display_progress(progress, _n); \
 	} while (0)
 
-int verify_midx_file(struct repository *r, struct opts_midx *opts)
+int verify_midx_file(struct repository *r, struct opts_multi_pack_index *opts)
 {
 	struct pair_pos_vs_id *pairs = NULL;
 	uint32_t i;
@@ -1188,7 +1188,7 @@ int verify_midx_file(struct repository *r, struct opts_midx *opts)
 	return verify_midx_error;
 }
 
-int expire_midx_packs(struct repository *r, struct opts_midx *opts)
+int expire_midx_packs(struct repository *r, struct opts_multi_pack_index *opts)
 {
 	uint32_t i, *count, result = 0;
 	struct string_list packs_to_drop = STRING_LIST_INIT_DUP;
@@ -1320,7 +1320,7 @@ static int fill_included_packs_batch(struct repository *r,
 	return 0;
 }
 
-int midx_repack(struct repository *r, struct opts_midx *opts, size_t batch_size)
+int midx_repack(struct repository *r, struct opts_multi_pack_index *opts, size_t batch_size)
 {
 	int result = 0;
 	uint32_t i;

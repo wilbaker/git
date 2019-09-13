@@ -561,7 +561,7 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	remove_temporary_files();
 
 	if (git_env_bool(GIT_TEST_MULTI_PACK_INDEX, 0)) {
-		struct opts_midx opts = {0};
+		struct opts_multi_pack_index opts = {0};
 		opts.object_dir = get_object_directory();
 		opts.progress = !po_args.quiet && isatty(2);
 		write_midx_file(&opts);

@@ -11,7 +11,7 @@ static char const * const builtin_multi_pack_index_usage[] = {
 };
 
 static long batch_size;
-static struct opts_midx opts;
+static struct opts_multi_pack_index opts;
 
 int cmd_multi_pack_index(int argc, const char **argv,
 			 const char *prefix)

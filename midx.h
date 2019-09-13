@@ -39,10 +39,10 @@ struct multi_pack_index {
 
 
 /*
- * struct opts_midx stores options that are common to the
+ * struct opts_multi_pack_index stores options that are common to the
  * multi-pack-index subcommands (write|verify|expire|repack)
  */
-struct opts_midx {
+struct opts_multi_pack_index {
 	const char *object_dir;
 	int progress;
 };
@@ -57,11 +57,11 @@ int fill_midx_entry(struct repository *r, const struct object_id *oid, struct pa
 int midx_contains_pack(struct multi_pack_index *m, const char *idx_or_pack_name);
 int prepare_multi_pack_index_one(struct repository *r, const char *object_dir, int local);
 
-int write_midx_file(struct opts_midx *opts);
+int write_midx_file(struct opts_multi_pack_index *opts);
 void clear_midx_file(struct repository *r);
-int verify_midx_file(struct repository *r, struct opts_midx *opts);
-int expire_midx_packs(struct repository *r, struct opts_midx *opts);
-int midx_repack(struct repository *r, struct opts_midx *opts, size_t batch_size);
+int verify_midx_file(struct repository *r, struct opts_multi_pack_index *opts);
+int expire_midx_packs(struct repository *r, struct opts_multi_pack_index *opts);
+int midx_repack(struct repository *r, struct opts_multi_pack_index *opts, size_t batch_size);
 
 void close_midx(struct multi_pack_index *m);
 
