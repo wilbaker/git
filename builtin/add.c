@@ -504,7 +504,9 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 
 	enable_fscache(0);
 	/* We do not really re-read the index but update the up-to-date flags */
+	trace2_region_enter("add", "preload_index", NULL);
 	preload_index(&the_index, &pathspec, 0);
+	trace2_region_leave("add", "preload_index", NULL);
 
 	if (add_new_files) {
 		int baselen;
@@ -517,9 +519,15 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		}
 
 		/* This picks up the paths that are not tracked */
+		trace2_region_enter("add", "fill_directory", NULL);
 		baselen = fill_directory(&dir, &the_index, &pathspec);
-		if (pathspec.nr)
+		trace2_region_leave("add", "fill_directory", NULL);
+
+		if (pathspec.nr) {
+			trace2_region_enter("add", "prune_directory", NULL);
 			seen = prune_directory(&dir, &pathspec, baselen);
+			trace2_region_leave("add", "prune_directory", NULL);
+		}
 	}
 
 	if (refresh_only) {
@@ -566,13 +574,21 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 
 	plug_bulk_checkin();
 
-	if (add_renormalize)
+	if (add_renormalize) {
+		trace2_region_enter("add", "renormalize_tracked_files", NULL);
 		exit_status |= renormalize_tracked_files(&pathspec, flags);
-	else
+		trace2_region_leave("add", "renormalize_tracked_files", NULL);
+	} else {
+		trace2_region_enter("add", "add_files_to_cache", NULL);
 		exit_status |= add_files_to_cache(prefix, &pathspec, flags);
+		trace2_region_leave("add", "add_files_to_cache", NULL);
+	}
 
-	if (add_new_files)
+	if (add_new_files) {
+		trace2_region_enter("add", "add_files", NULL);
 		exit_status |= add_files(&dir, flags);
+		trace2_region_leave("add", "add_files", NULL);
+	}
 
 	if (chmod_arg && pathspec.nr)
 		chmod_pathspec(&pathspec, chmod_arg[0]);
