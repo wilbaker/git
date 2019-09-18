@@ -1017,7 +1017,7 @@ cleanup:
 	return result;
 }
 
-int write_midx_file(const char *object_dir)
+int write_midx_file(const char *object_dir, unsigned flags)
 {
 	return write_midx_internal(object_dir, NULL, NULL);
 }
@@ -1184,7 +1184,7 @@ int verify_midx_file(struct repository *r, const char *object_dir, unsigned flag
 	return verify_midx_error;
 }
 
-int expire_midx_packs(struct repository *r, const char *object_dir)
+int expire_midx_packs(struct repository *r, const char *object_dir, unsigned flags)
 {
 	uint32_t i, *count, result = 0;
 	struct string_list packs_to_drop = STRING_LIST_INIT_DUP;
