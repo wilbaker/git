@@ -459,18 +459,27 @@ test_expect_success 'expire does not remove any packs' '
 '
 
 test_expect_success 'expire progress off for redirected stderr' '
-	git multi-pack-index --object-dir=$objdir expire 2>err &&
-	test_line_count = 0 err
+	(
+		cd dup &&
+		git multi-pack-index expire 2>err &&
+		test_line_count = 0 err
+	)
 '
 
 test_expect_success 'expire force progress on for stderr' '
-	git multi-pack-index --object-dir=$objdir --progress expire 2>err &&
-	test_file_not_empty err
+	(
+		cd dup &&
+		git multi-pack-index --progress expire 2>err &&
+		test_file_not_empty err
+	)
 '
 
 test_expect_success 'expire with the --no-progress option' '
-	git multi-pack-index --object-dir=$objdir --no-progress expire 2>err &&
-	test_line_count = 0 err
+	(
+		cd dup &&
+		git multi-pack-index --no-progress expire 2>err &&
+		test_line_count = 0 err
+	)
 '
 
 test_expect_success 'expire removes unreferenced packs' '
