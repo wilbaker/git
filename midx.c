@@ -459,7 +459,7 @@ static void add_pack_to_midx(const char *full_path, size_t full_path_len,
 	struct pack_list *packs = (struct pack_list *)data;
 
 	if (ends_with(file_name, ".idx")) {
-		++packs->pack_paths_checked;
+		packs->pack_paths_checked++;
 		if (packs->m && midx_contains_pack(packs->m, file_name)) {
 			display_progress(packs->progress, packs->pack_paths_checked);
 			return;
