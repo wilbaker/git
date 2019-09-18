@@ -449,6 +449,8 @@ struct pack_list {
 	uint32_t nr;
 	uint32_t alloc;
 	struct multi_pack_index *m;
+	struct progress *progress;
+	uint32_t pack_paths_checked;
 };
 
 static void add_pack_to_midx(const char *full_path, size_t full_path_len,
@@ -457,8 +459,11 @@ static void add_pack_to_midx(const char *full_path, size_t full_path_len,
 	struct pack_list *packs = (struct pack_list *)data;
 
 	if (ends_with(file_name, ".idx")) {
-		if (packs->m && midx_contains_pack(packs->m, file_name))
+		++packs->pack_paths_checked;
+		if (packs->m && midx_contains_pack(packs->m, file_name)) {
+			display_progress(packs->progress, packs->pack_paths_checked);
 			return;
+		}
 
 		ALLOC_GROW(packs->info, packs->nr + 1, packs->alloc);
 
@@ -469,6 +474,7 @@ static void add_pack_to_midx(const char *full_path, size_t full_path_len,
 		if (!packs->info[packs->nr].p) {
 			warning(_("failed to add packfile '%s'"),
 				full_path);
+			display_progress(packs->progress, packs->pack_paths_checked);
 			return;
 		}
 
@@ -477,6 +483,7 @@ static void add_pack_to_midx(const char *full_path, size_t full_path_len,
 				full_path);
 			close_pack(packs->info[packs->nr].p);
 			FREE_AND_NULL(packs->info[packs->nr].p);
+			display_progress(packs->progress, packs->pack_paths_checked);
 			return;
 		}
 
@@ -484,6 +491,7 @@ static void add_pack_to_midx(const char *full_path, size_t full_path_len,
 		packs->info[packs->nr].orig_pack_int_id = packs->nr;
 		packs->info[packs->nr].expired = 0;
 		packs->nr++;
+		display_progress(packs->progress, packs->pack_paths_checked);
 	}
 }
 
@@ -786,7 +794,7 @@ static size_t write_midx_large_offsets(struct hashfile *f, uint32_t nr_large_off
 }
 
 static int write_midx_internal(const char *object_dir, struct multi_pack_index *m,
-			       struct string_list *packs_to_drop)
+			       struct string_list *packs_to_drop, unsigned flags)
 {
 	unsigned char cur_chunk, num_chunks = 0;
 	char *midx_name;
@@ -833,8 +841,15 @@ static int write_midx_internal(const char *object_dir, struct multi_pack_index *
 			packs.nr++;
 		}
 	}
+	
+	packs.pack_paths_checked = 0;
+	if (flags & MIDX_PROGRESS)
+		packs.progress = start_progress(_("Adding packfiles to MIDX"), 0);
+	else
+		packs.progress = NULL;
 
 	for_each_file_in_pack_dir(object_dir, add_pack_to_midx, &packs);
+	stop_progress(&packs.progress);
 
 	if (packs.m && packs.nr == packs.m->num_packs && !packs_to_drop)
 		goto cleanup;
@@ -1019,7 +1034,7 @@ cleanup:
 
 int write_midx_file(const char *object_dir, unsigned flags)
 {
-	return write_midx_internal(object_dir, NULL, NULL);
+	return write_midx_internal(object_dir, NULL, NULL, flags);
 }
 
 void clear_midx_file(struct repository *r)
@@ -1193,6 +1208,7 @@ int expire_midx_packs(struct repository *r, const char *object_dir, unsigned fla
 	uint32_t i, *count, result = 0;
 	struct string_list packs_to_drop = STRING_LIST_INIT_DUP;
 	struct multi_pack_index *m = load_multi_pack_index(object_dir, 1);
+	struct progress *progress = NULL;
 
 	if (!m)
 		return 0;
@@ -1203,17 +1219,26 @@ int expire_midx_packs(struct repository *r, const char *object_dir, unsigned fla
 		count[pack_int_id]++;
 	}
 
+	if (flags & MIDX_PROGRESS)
+		progress = start_progress(_("Finding and deleting unreferenced packfiles"),
+				 	 m->num_packs);
 	for (i = 0; i < m->num_packs; i++) {
 		char *pack_name;
 
-		if (count[i])
+		if (count[i]) {
+			display_progress(progress, i + 1);
 			continue;
+		}
 
-		if (prepare_midx_pack(r, m, i))
+		if (prepare_midx_pack(r, m, i)) {
+			display_progress(progress, i + 1);
 			continue;
+		}
 
-		if (m->packs[i]->pack_keep)
+		if (m->packs[i]->pack_keep) {
+			display_progress(progress, i + 1);
 			continue;
+		}
 
 		pack_name = xstrdup(m->packs[i]->pack_name);
 		close_pack(m->packs[i]);
@@ -1221,12 +1246,15 @@ int expire_midx_packs(struct repository *r, const char *object_dir, unsigned fla
 		string_list_insert(&packs_to_drop, m->pack_names[i]);
 		unlink_pack_path(pack_name, 0);
 		free(pack_name);
+
+		display_progress(progress, i + 1);
 	}
+	stop_progress(&progress);
 
 	free(count);
 
 	if (packs_to_drop.nr)
-		result = write_midx_internal(object_dir, m, &packs_to_drop);
+		result = write_midx_internal(object_dir, m, &packs_to_drop, flags);
 
 	string_list_clear(&packs_to_drop, 0);
 	return result;
@@ -1381,7 +1409,7 @@ int midx_repack(struct repository *r, const char *object_dir, size_t batch_size,
 		goto cleanup;
 	}
 
-	result = write_midx_internal(object_dir, m, NULL);
+	result = write_midx_internal(object_dir, m, NULL, flags);
 	m = NULL;
 
 cleanup:
