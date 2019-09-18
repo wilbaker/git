@@ -85,6 +85,21 @@ test_expect_success 'write midx with one v1 pack' '
 	midx_read_expect 1 18 4 $objdir
 '
 
+test_expect_success 'write progress off for redirected stderr' '
+	git multi-pack-index --object-dir=$objdir write 2>err &&
+	test_line_count = 0 err
+'
+
+test_expect_success 'write force progress on for stderr' '
+	git multi-pack-index --object-dir=$objdir --progress write 2>err &&
+	test_file_not_empty err
+'
+
+test_expect_success 'write with the --no-progress option' '
+	git multi-pack-index --object-dir=$objdir --no-progress write 2>err &&
+	test_line_count = 0 err
+'
+
 midx_git_two_modes () {
 	git -c core.multiPackIndex=false $1 >expect &&
 	git -c core.multiPackIndex=true $1 >actual &&
@@ -167,6 +182,21 @@ compare_results_with_midx "twelve packs"
 
 test_expect_success 'verify multi-pack-index success' '
 	git multi-pack-index verify --object-dir=$objdir
+'
+
+test_expect_success 'verify progress off for redirected stderr' '
+	git multi-pack-index verify --object-dir=$objdir 2>err &&
+	test_line_count = 0 err
+'
+
+test_expect_success 'verify force progress on for stderr' '
+	git multi-pack-index verify --object-dir=$objdir --progress 2>err &&
+	test_file_not_empty err
+'
+
+test_expect_success 'verify with the --no-progress option' '
+	git multi-pack-index verify --object-dir=$objdir --no-progress 2>err &&
+	test_line_count = 0 err
 '
 
 # usage: corrupt_midx_and_verify <pos> <data> <objdir> <string>
@@ -282,6 +312,21 @@ test_expect_success 'git-fsck incorrect offset' '
 	corrupt_midx_and_verify $MIDX_BYTE_OFFSET "\07" $objdir \
 		"incorrect object offset" \
 		"git -c core.multipackindex=true fsck"
+'
+
+test_expect_success 'repack progress off for redirected stderr' '
+	git multi-pack-index --object-dir=$objdir repack 2>err &&
+	test_line_count = 0 err
+'
+
+test_expect_success 'repack force progress on for stderr' '
+	git multi-pack-index --object-dir=$objdir --progress repack 2>err &&
+	test_file_not_empty err
+'
+
+test_expect_success 'repack with the --no-progress option' '
+	git multi-pack-index --object-dir=$objdir --no-progress repack 2>err &&
+	test_line_count = 0 err
 '
 
 test_expect_success 'repack removes multi-pack-index' '
@@ -411,6 +456,21 @@ test_expect_success 'expire does not remove any packs' '
 		ls .git/objects/pack >actual &&
 		test_cmp expect actual
 	)
+'
+
+test_expect_success 'expire progress off for redirected stderr' '
+	git multi-pack-index --object-dir=$objdir expire 2>err &&
+	test_line_count = 0 err
+'
+
+test_expect_success 'expire force progress on for stderr' '
+	git multi-pack-index --object-dir=$objdir --progress expire 2>err &&
+	test_file_not_empty err
+'
+
+test_expect_success 'expire with the --no-progress option' '
+	git multi-pack-index --object-dir=$objdir --no-progress expire 2>err &&
+	test_line_count = 0 err
 '
 
 test_expect_success 'expire removes unreferenced packs' '
