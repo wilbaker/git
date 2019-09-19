@@ -511,12 +511,13 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	if (add_new_files) {
 		int baselen;
 		
+		/* Set up the default git porcelain excludes */
+		memset(&dir, 0, sizeof(dir));
+		
 		/* Set untracked before calling setup_standard_excludes as its
 	       behavior changes based on whether or not untracked is set */
 		dir.untracked = the_index.untracked;
-
-		/* Set up the default git porcelain excludes */
-		memset(&dir, 0, sizeof(dir));
+		
 		if (!ignored_too) {
 			dir.flags |= DIR_COLLECT_IGNORED;
 			setup_standard_excludes(&dir);
