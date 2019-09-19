@@ -510,6 +510,10 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 
 	if (add_new_files) {
 		int baselen;
+		
+		/* Set untracked before calling setup_standard_excludes as its
+	       behavior changes based on whether or not untracked is set */
+		dir.untracked = the_index.untracked;
 
 		/* Set up the default git porcelain excludes */
 		memset(&dir, 0, sizeof(dir));
@@ -519,7 +523,6 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		}
 
 		/* This picks up the paths that are not tracked */
-        dir.untracked = the_index.untracked;
 		trace2_region_enter("add", "fill_directory", NULL);
 		baselen = fill_directory(&dir, &the_index, &pathspec);
 		trace2_region_leave("add", "fill_directory", NULL);
