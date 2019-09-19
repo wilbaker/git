@@ -519,6 +519,7 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		}
 
 		/* This picks up the paths that are not tracked */
+        dir.untracked = the_index.untracked;
 		trace2_region_enter("add", "fill_directory", NULL);
 		baselen = fill_directory(&dir, &the_index, &pathspec);
 		trace2_region_leave("add", "fill_directory", NULL);
