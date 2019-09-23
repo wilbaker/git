@@ -512,6 +512,14 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 
 		/* Set up the default git porcelain excludes */
 		memset(&dir, 0, sizeof(dir));
+
+		/*
+		 * Include the flags used for the untracked cache (see
+		 * new_untracked_cache()) to improve the chances that it can be
+		 * used during fill_directory().
+		 */
+		dir.flags = DIR_SHOW_OTHER_DIRECTORIES | DIR_HIDE_EMPTY_DIRECTORIES;
+
 		if (!ignored_too) {
 			dir.flags |= DIR_COLLECT_IGNORED;
 			setup_standard_excludes(&dir);
