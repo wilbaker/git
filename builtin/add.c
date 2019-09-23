@@ -504,9 +504,12 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 
 	enable_fscache(0);
 	/* We do not really re-read the index but update the up-to-date flags */
-	trace2_region_enter("add", "preload_index", NULL);
-	preload_index(&the_index, &pathspec, 0);
-	trace2_region_leave("add", "preload_index", NULL);
+	trace2_region_enter("add", "refresh_index", NULL);
+	// preload_index(&the_index, &pathspec, 0);
+	refresh_index(&the_index,
+		      REFRESH_QUIET|REFRESH_UNMERGED,
+		      &pathspec, NULL, NULL);
+	trace2_region_leave("add", "refresh_index", NULL);
 
 	if (add_new_files) {
 		int baselen;
@@ -517,6 +520,9 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		/* Set untracked before calling setup_standard_excludes as its
 	       behavior changes based on whether or not untracked is set */
 		dir.untracked = the_index.untracked;
+		
+		// validate_untracked_cache(...) wants the flags we're using to
+		// match the flags used to build the cache
 		dir.flags |= DIR_HIDE_EMPTY_DIRECTORIES;
 		dir.flags |= DIR_SHOW_OTHER_DIRECTORIES;
 		
