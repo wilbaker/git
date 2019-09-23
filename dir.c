@@ -2412,7 +2412,15 @@ static struct untracked_cache_dir *validate_untracked_cache(struct dir_struct *d
 	 * use cache on just a subset of the worktree. pathspec
 	 * support could make the matter even worse.
 	 */
-	if (base_len || (pathspec && pathspec->nr))
+	if (base_len || (pathspec && pathspec->nr > 1))
+		return NULL;
+
+	/*
+	 * Allow single entry pathspecs if the pathspec has no effect on
+	 * matching (e.g. 'git add .' from the root of the repo)
+	 */
+
+	if (pathspec && pathspec->nr == 1 && pathspec->items[0].match[0] != '\0')
 		return NULL;
 
 	/* Different set of flags may produce different results */
