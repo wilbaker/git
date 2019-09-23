@@ -721,7 +721,9 @@ static void wt_status_collect_untracked(struct wt_status *s)
 
 	setup_standard_excludes(&dir);
 
+	trace2_region_enter("status", "fill_directory", NULL);
 	fill_directory(&dir, istate, &s->pathspec);
+	trace2_region_leave("status", "fill_directory", NULL);
 
 	for (i = 0; i < dir.nr; i++) {
 		struct dir_entry *ent = dir.entries[i];

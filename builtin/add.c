@@ -517,9 +517,19 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		/* Set untracked before calling setup_standard_excludes as its
 	       behavior changes based on whether or not untracked is set */
 		dir.untracked = the_index.untracked;
+		dir.flags |= DIR_HIDE_EMPTY_DIRECTORIES;
+		dir.flags |= DIR_SHOW_OTHER_DIRECTORIES;
 		
 		if (!ignored_too) {
-			dir.flags |= DIR_COLLECT_IGNORED;
+		    /* TODO: Only set DIR_COLLECT_IGNORED when there are no wildcards
+		    `DIR_COLLECT_IGNORED`:::
+				Special mode for git-add. Return ignored files in `ignored[]` and
+				untracked files in `entries[]`. Only returns ignored files that match
+				pathspec exactly (no wildcards). Does not recurse into ignored
+				directories.
+			*/
+			
+			// dir.flags |= DIR_COLLECT_IGNORED;
 			setup_standard_excludes(&dir);
 		}
 
