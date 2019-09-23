@@ -504,7 +504,8 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 
 	enable_fscache(0);
 	/* We do not really re-read the index but update the up-to-date flags */
-	preload_index(&the_index, &pathspec, 0);
+	refresh_index(&the_index, REFRESH_QUIET|REFRESH_UNMERGED,  &pathspec, 
+		      NULL, NULL);
 
 	if (add_new_files) {
 		int baselen;
