@@ -353,10 +353,10 @@ test_expect_success 'discard_index() also discards fsmonitor info' '
 	printf "tracked is%s up to date\n" "" " not" >expect &&
 	test_cmp expect actual
 '
-
+
 # Use test files that start with 'z' so that the entries being added
 # and removed appear at the end of the index.
-test_expect_success 'fsmonitor extension ignores removed index entries' '
+test_expect_success 'compare status before and after staging/unstaging ' '
 	test_commit initial &&
 	removed=$(seq 1 100 | sed "s/^/z/") &&
 	touch $removed &&
