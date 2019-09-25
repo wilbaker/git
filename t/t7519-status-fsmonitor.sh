@@ -360,15 +360,12 @@ test_expect_success 'fsmonitor extension ignores removed index entries' '
 	test_commit initial &&
 	removed=$(seq 1 100 | sed "s/^/z/") &&
 	touch $removed &&
-	git status >expected-status &&
-	git ls-files -f >expected-ls-files &&
+	git status >expected &&
 	git add $removed &&
 	test_config core.fsmonitor "$TEST_DIRECTORY/t7519/fsmonitor-env" &&
 	FSMONITOR_LIST="$removed" git restore -S $removed &&
-	FSMONITOR_LIST="$removed" git status >actual-status &&
-	FSMONITOR_LIST="$removed" git ls-files -f >actual-ls-files &&
-	test_cmp expected-status actual-status &&
-	test_cmp expected-ls-files actual-ls-files
+	FSMONITOR_LIST="$removed" git status >actual &&
+	test_cmp expected actual
 '
 
 test_done
