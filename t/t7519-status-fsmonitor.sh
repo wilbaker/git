@@ -367,7 +367,7 @@ test_expect_success 'fsmonitor extension ignores removed index entries' '
 	FSMONITOR_LIST="$removed" git restore -S $removed &&
 	FSMONITOR_LIST="$removed" git status >actual-status &&
 	FSMONITOR_LIST="$removed" git ls-files -f >actual-ls-files &&
-	test_cmp expected-status actual-status
+	test_cmp expected-status actual-status &&
 	test_cmp expected-ls-files actual-ls-files
 '
 
