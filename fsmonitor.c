@@ -65,14 +65,11 @@ int read_fsmonitor_extension(struct index_state *istate, const void *data,
 
 void fill_fsmonitor_bitmap(struct index_state *istate)
 {
-	unsigned int i, skipped = 0;
+	unsigned int i;
 	istate->fsmonitor_dirty = ewah_new();
-	for (i = 0; i < istate->cache_nr; i++) {
-		if (istate->cache[i]->ce_flags & CE_REMOVE)
-			skipped++;
-		else if (!(istate->cache[i]->ce_flags & CE_FSMONITOR_VALID))
-			ewah_set(istate->fsmonitor_dirty, i - skipped);
-	}
+	for (i = 0; i < istate->cache_nr; i++)
+		if (!(istate->cache[i]->ce_flags & CE_FSMONITOR_VALID))
+			ewah_set(istate->fsmonitor_dirty, i);
 }
 
 void write_fsmonitor_extension(struct strbuf *sb, struct index_state *istate)
