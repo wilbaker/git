@@ -361,6 +361,7 @@ test_expect_success 'status succeeds after staging/unstaging ' '
 	(
 		cd fsmonitor-stage-unstage &&
 		test_commit initial &&
+		git update-index --fsmonitor &&
 		removed=$(test_seq 1 100 | sed "s/^/z/") &&
 		touch $removed &&
 		git add $removed &&
