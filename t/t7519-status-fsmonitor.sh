@@ -364,7 +364,7 @@ test_expect_success 'status succeeds after staging/unstaging ' '
 		removed=$(test_seq 1 100 | sed "s/^/z/") &&
 		touch $removed &&
 		git add $removed &&
-		test_config core.fsmonitor "$TEST_DIRECTORY/t7519/fsmonitor-env" &&
+		git config core.fsmonitor "$TEST_DIRECTORY/t7519/fsmonitor-env" &&
 		FSMONITOR_LIST="$removed" git restore -S $removed &&
 		FSMONITOR_LIST="$removed" git status
 	)
